@@ -41,13 +41,18 @@ include_directories(${CMAKE_SOURCE_DIR}/include/glad)
 include_directories(${glm_SOURCE_DIR})
 include_directories(${stb_image_SOURCE_DIR})
 
+# Lista de exemplos/exercícios podem ser colocados aqui também
+set(AUX_CLASSES
+    teste
+)
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
     Hello3D
     TriangleTex
     SpherePhong
-   
+    #TarefaModulo2
+    teste
 )
 
 add_compile_options(-Wno-pragmas)
@@ -73,7 +78,16 @@ endif()
 
 # Cria os executáveis
 foreach(EXERCISE ${EXERCISES})
-    add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE})
-    target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR})
+
+    if (EXERCISE IN_LIST AUX_CLASSES)
+      add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE} "src/Engine/Control.cpp")
+      target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR} "src/Engine")
+    else()
+      add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE})
+      target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR})
+    endif()
+
+    #add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE})
+    #target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR})
     target_link_libraries(${EXERCISE} glfw ${OPENGL_LIBS})
 endforeach()
