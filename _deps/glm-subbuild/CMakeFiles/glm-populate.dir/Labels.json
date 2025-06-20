@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/CMakeFiles/glm-populate"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/CMakeFiles/glm-populate.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/CMakeFiles/glm-populate-complete.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-build.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-configure.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-download.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-install.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-patch.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-test.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glm-populate"
+		],
+		"name" : "glm-populate"
+	}
+}

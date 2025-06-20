@@ -43,12 +43,12 @@ include_directories(${stb_image_SOURCE_DIR})
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(AUX_CLASSES
-    TarefaModulo2
+    
 )
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
-    TarefaModulo2
+    Hello3D
 )
 
 add_compile_options(-Wno-pragmas)

@@ -43,12 +43,12 @@ include_directories(${stb_image_SOURCE_DIR})
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(AUX_CLASSES
-    TarefaModulo2
+    TarefaModulo3
 )
 
 # Lista de exemplos/exercícios podem ser colocados aqui também
 set(EXERCISES
-    TarefaModulo2
+    TarefaModulo3
 )
 
 add_compile_options(-Wno-pragmas)
@@ -76,7 +76,7 @@ endif()
 foreach(EXERCISE ${EXERCISES})
 
     if (EXERCISE IN_LIST AUX_CLASSES)
-      add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE} "src/Engine/Control.cpp")
+      add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE} "src/Engine/Control.cpp" "src/Engine/Character.cpp")
       target_include_directories(${EXERCISE} PRIVATE ${CMAKE_SOURCE_DIR}/include/glad ${glm_SOURCE_DIR} ${stb_image_SOURCE_DIR} "src/Engine")
     else()
       add_executable(${EXERCISE} src/${EXERCISE}.cpp ${GLAD_C_FILE})

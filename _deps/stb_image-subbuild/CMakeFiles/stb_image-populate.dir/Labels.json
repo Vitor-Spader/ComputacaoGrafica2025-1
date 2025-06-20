@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate-complete.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-build.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-configure.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-download.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-install.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-patch.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-test.rule"
+		},
+		{
+			"file" : "/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"stb_image-populate"
+		],
+		"name" : "stb_image-populate"
+	}
+}

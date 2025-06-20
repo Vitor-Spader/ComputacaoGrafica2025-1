@@ -1,0 +1,14 @@
+# Target labels
+ stb_image-populate
+# Source files and their labels
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate-complete.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-build.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-configure.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-download.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-install.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-mkdir.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-patch.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-test.rule
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/stb_image-populate-prefix/src/stb_image-populate-stamp/stb_image-populate-update.rule

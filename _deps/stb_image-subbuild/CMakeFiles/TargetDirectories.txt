@@ -1,0 +1,3 @@
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/stb_image-populate.dir
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/edit_cache.dir
+/home/vitor/Documents/Unisinos/computacao_grafica/ComputacaoGrafica2025-1/_deps/stb_image-subbuild/CMakeFiles/rebuild_cache.dir
