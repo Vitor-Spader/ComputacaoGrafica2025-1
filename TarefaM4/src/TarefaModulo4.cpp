@@ -54,34 +54,79 @@ const GLchar* vertexShaderSource = R"(
 	layout (location = 0) in vec3 position;
 	layout (location = 1) in vec3 color;
 	layout (location = 2) in vec2 tex_coord;
+	layout (location = 3) in vec3 normal;
 
-	out vec4 vertexColor;
+	out vec3 vertexColor;
 	out vec2 texCoord;
+	out vec3 fragPos;
+	out vec3 scaledNormal;
 
 	uniform mat4 model;
+	//uniform mat4 view;
+	//uniform mat4 projection;
 
 	void main()
 	{
 		gl_Position = model * vec4(position, 1.0f);
-		vertexColor = vec4(color, 1.0f);
-		texCoord = vec2(tex_coord.x, tex_coord.y);
+		vertexColor = color;
+		texCoord = tex_coord;
+		fragPos = vec3(model * vec4(position, 1.0));
+		scaledNormal = vec3(model * vec4(normal, 1.0));
 	})";
 
 
 //Códifo fonte do Fragment Shader (em GLSL): ainda hardcoded
 const GLchar* fragmentShaderSource = R"(
 	#version 450 core
-	//in vec4 vertexColor;
+	in vec3 vertexColor;
 	in vec2 texCoord;
+	in vec3 fragPos;
+	in vec3 scaledNormal;
 
 	out vec4 Color;
+
+	//Propriedades superfície
+	uniform float ka;
+	uniform float kd;
+	uniform float ks;
+	uniform float q;
+
+	//Propriedades fonte de luz
+	uniform vec3 lightPos;
+	uniform vec3 lightColor;
+
+	//Posição da Câmera
+	uniform vec3 cameraPos;
 
 	//pixels da textura
 	uniform sampler2D tex_buffer;
 
 	void main()
 	{
-		Color = texture(tex_buffer,texCoord);
+		vec3 finalColor = vertexColor;
+		//Cor da textura
+		//vec3 finalColor = texture(tex_buffer, texCoord).rgb;
+
+		//Cálculo da parcela de iluminação ambiente
+		vec3 ambient = ka * lightColor;
+
+		//Cálculo da parcela de iluminação difusa
+		vec3 N = normalize(scaledNormal);
+		vec3 L = normalize(lightPos - fragPos);
+		float diff = max(dot(N,L), 0.0f);
+		vec3 diffuse = kd * diff * lightColor;
+
+		//Cálculo da Parcela de Iluminação Especular
+		vec3 V = normalize(cameraPos - fragPos);
+		vec3 R = normalize(reflect(-L, N));
+		float spec = max(dot(R,V), 0.0f);
+		spec = pow(spec, q);
+		vec3 specular = ks * spec * lightColor;
+
+		vec3 result = (ambient + diffuse) * finalColor +specular;
+		
+		//Color = texture(tex_buffer,texCoord);
+		Color = vec4(result, 1.0f);
 	})";
 
 vector<Character*> character(1);
@@ -94,7 +139,7 @@ int main()
 	glfwInit();
 
 	// Criação da janela GLFW
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M3 -- Vitor Henrique Spader!", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M4 -- Vitor Henrique Spader!", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Fazendo o registro da função de callback para a janela GLFW
@@ -125,29 +170,10 @@ int main()
 	for (int x=0; x < character.size(); x++)
 	{
 		Control* controler = new Control(0.0f, 0.0f, 0.0f , 0.1f);
-		controler->setScale(-1);
-		controler->setScale(-1);
-		controler->setScale(-1);
+		controler->setScale(-3);
 		character[x] = new Character(controler, "../assets/Modelos3D/Suzanne.obj", true);
+		character[x]->initializeUniformProperties(shaderID);
 	}
-
-	glUseProgram(shaderID);
-
-	// Enviar a informação de qual variável armazenará o buffer da textura
-	GLuint textureLoc = glGetUniformLocation(shaderID, "texBuff");
-	glUniform1i(textureLoc, 0);
-
-	//Ativando o primeiro buffer de textura da OpenGL
-	glActiveTexture(GL_TEXTURE0);
-	
-	// Matriz de projeção paralela ortográfica
-	glm::mat4 projection = glm::ortho(0.0, 800.0, 0.0, 600.0, -1.0, 1.0);
-	glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, value_ptr(projection));
-
-	// Matriz de modelo: transformações na geometria (objeto)
-	glm::mat4 model = glm::mat4(1); // matriz identidade
-	GLuint modelLoc = glGetUniformLocation(shaderID, "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -158,12 +184,12 @@ int main()
 		glfwPollEvents();
 
 		// Limpa o buffer de cor
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //cor de fundo
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		for (int x=0; x < character.size(); x++)
 		{
-			character[x]->draw(modelLoc, textureLoc, true);
+			character[x]->draw(shaderID, true);
 
 		}
 

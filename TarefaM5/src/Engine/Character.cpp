@@ -282,6 +282,18 @@ void Character::initializeUniformProperties(GLuint shaderID)
 	glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
+    // Projeção perspectiva: fov de 45°, aspect ratio da janela
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    // View: posiciona a câmera atrás e centralizada
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(0.0f, 0.0f, 5.0f), // posição da câmera
+        glm::vec3(0.0f, 0.0f, 0.0f), // olha para a origem
+        glm::vec3(0.0f, 1.0f, 0.0f)  // vetor "up"
+    );
+    glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+
 	// Matriz de modelo: transformações na geometria (objeto)
 	glm::mat4 model = glm::mat4(1); // matriz identidade
 	modelLoc = glGetUniformLocation(shaderID, "model");

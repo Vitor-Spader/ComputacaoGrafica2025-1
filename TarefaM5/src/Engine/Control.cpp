@@ -32,7 +32,7 @@ glm::mat4 Control::getModel() {
     if (rotation.X != defaultRotation.X || rotation.Y != defaultRotation.Y || rotation.Z != defaultRotation.Z )
         model = glm::rotate(model, angle, glm::vec3(rotation.X, rotation.Y, rotation.Z));
 
-    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     if (scale != 0)
         model = glm::scale(model, glm::vec3(scale));
