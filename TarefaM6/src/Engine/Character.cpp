@@ -27,7 +27,6 @@ Character::Character(Control* characterControl, std::string objFilePath, bool ha
         loadMTLData(objFilePath);
         loadTexture();
     }
-    
 };
 
 Character::~Character() {
@@ -61,7 +60,6 @@ void Character::draw(const GLuint shaderID, const bool drawPoints) const
     glBindTexture(GL_TEXTURE_2D, textureId);
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(control->getModel()));
-    //glUniform4f(glGetUniformLocation(modelLoc, "inputColor"), 0.0f, 0.0f, 0.1f, 1.0f);
     
     glUniform1i(textureLoc,0);
 
@@ -170,7 +168,6 @@ GLuint Character::loadOBJ(std::string filePATH)
     glBindVertexArray(0);
 
 	nVertices = vBuffer.size() / 11;  // x, y, z, r, g, b, tx, ty, nx, ny, nz (valores atualmente armazenados por vértice)
-
     return VAO;
 };
 
@@ -246,7 +243,6 @@ void Character::loadMTLData(const std::string& objPath)
         {
             std::string textureFile;
             ssline >> textureFile;
-
             // Caminho completo da textura no mesmo diretório do .obj
             fs::path texturePath = objFilePath.parent_path() / textureFile;
             textureFilePath = texturePath.string();
@@ -280,6 +276,7 @@ void Character::initializeUniformProperties(const GLuint shaderID)
 	glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
+	modelLoc = glGetUniformLocation(shaderID, "model");
 	//Propriedades de refração
     glUniform1f(glGetUniformLocation(shaderID, "ka"), ligthProperties.ka);
     glUniform1f(glGetUniformLocation(shaderID, "kd"), ligthProperties.kd);

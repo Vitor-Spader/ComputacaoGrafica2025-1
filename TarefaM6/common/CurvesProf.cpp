@@ -31,6 +31,40 @@ using namespace glm;
 
 #include <cmath>
 
+struct Mesh
+{
+    GLuint VAO;
+    glm::vec3 pos;
+    glm::vec3 dimensions;
+    float angle;
+    float vel;
+    GLuint drawMode;
+    GLuint nVertices;
+};
+
+struct Curve {
+    std::vector<glm::vec3> controlPoints; // Pontos de controle da curva
+    std::vector<glm::vec3> curvePoints;   // Pontos da curva
+    glm::mat4 M;          // Matriz dos coeficientes da curva
+};
+
+////
+void drawMesh(GLuint shaderID, Mesh mesh)
+{
+    //Usa o mesmo buffer de geometria parfa todos os sprites
+    glBindVertexArray(mesh.VAO);
+
+    glm::mat4 model = glm::mat4(1);
+    model = glm::translate(model, mesh.pos);
+    model = glm::rotate(model, glm::radians(mesh.angle), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, mesh.dimensions);
+    glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    glDrawArrays(mesh.drawMode, 0, mesh.nVertices);
+
+    glBindVertexArray(0);
+}
+////
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
@@ -46,80 +80,43 @@ GLuint generateSphere(float radius, int latSegments, int lonSegments, int &nVert
 const GLuint WIDTH = 800, HEIGHT = 800;
 
 // Código fonte do Vertex Shader (em GLSL): ainda hardcoded
-const GLchar *vertexShaderSource = R"(
-#version 400
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
-layout (location = 2) in vec3 normal;
-layout (location = 3) in vec2 texc;
+const GLchar* vertexShaderSource = "#version 400\n"
+"layout (location = 0) in vec3 position;\n"
+"uniform mat4 projection;\n"
+"uniform mat4 model;\n"
+"void main()\n"
+"{\n"
+//...pode ter mais linhas de código aqui!
+"gl_Position = projection * model * vec4(position.x, position.y, position.z, 1.0);\n"
+"}\0";
 
-uniform mat4 projection;
-uniform mat4 model;
+//Código fonte do Fragment Shader (em GLSL): ainda hardcoded
+const GLchar* fragmentShaderSource = "#version 400\n"
+"uniform vec4 inputColor;\n"
+"out vec4 color;\n"
+"void main()\n"
+"{\n"
+"color = inputColor;\n"
+"}\n\0";
 
-out vec2 texCoord;
-out vec3 vNormal;
-out vec4 fragPos; 
-out vec4 vColor;
-void main()
-{
-   	gl_Position = projection * model * vec4(position.x, position.y, position.z, 1.0);
-	fragPos = model * vec4(position.x, position.y, position.z, 1.0);
-	texCoord = texc;
-	vNormal = normal;
-	vColor = vec4(color,1.0);
-})";
+int setupQuad();
+int createPointsVAO(vector<vec3> points);
+void initializeBernsteinMatrix(glm::mat4 &matrix);
+void generateBezierCurvePoints(Curve &curve, int numPoints);
 
-// Código fonte do Fragment Shader (em GLSL): ainda hardcoded
-const GLchar *fragmentShaderSource = R"(
-#version 400
-in vec2 texCoord;
-uniform sampler2D texBuff;
-uniform vec3 lightPos;
-uniform float ka;
-uniform float kd;
-out vec4 color;
-in vec4 fragPos;
-in vec3 vNormal;
-in vec4 vColor;
-void main()
-{
+vector<vec3> pontosControle;
 
-	vec3 lightColor = vec3(1.0,1.0,1.0);
-	//vec4 objectColor = texture(texBuff,texCoord);
-	vec4 objectColor = vColor;
-
-	//Coeficiente de luz ambiente
-	vec3 ambient = ka * lightColor;
-
-	//Coeficiente difuso
-	vec3 N = normalize(vNormal);
-	vec3 L = normalize(lightPos - vec3(fragPos));
-	float diff = max(dot(N, L),0.0);
-	vec3 diffuse = kd * diff * lightColor;
-
-	vec3 result = (ambient + diffuse) * vec3(objectColor);
-	color = vec4(result,1.0);
-
-})";
+int i = 0;
+float prev_time = glfwGetTime();
+float curr_time = glfwGetTime();
+float delta_time = 0.0;
+float FPS = 24.0;
 
 // Função MAIN
 int main()
 {
 	// Inicialização da GLFW
 	glfwInit();
-
-	// Muita atenção aqui: alguns ambientes não aceitam essas configurações
-	// Você deve adaptar para a versão do OpenGL suportada por sua placa
-	// Sugestão: comente essas linhas de código para desobrir a versão e
-	// depois atualize (por exemplo: 4.5 com 4 e 5)
-	/*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
-
-	// Essencial para computadores da Apple
-	// #ifdef __APPLE__
-	//	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	// #endif
 
 	// Criação da janela GLFW
 	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ola esfera iluminada!", nullptr, nullptr);
@@ -148,64 +145,112 @@ int main()
 	// Compilando e buildando o programa de shader
 	GLuint shaderID = setupShader();
 
-	// Gerando um buffer simples, com a geometria de um triângulo
 	int nVertices;
-	GLuint VAO = generateSphere(0.5, 16, 16, nVertices);
 
-	// Carregando uma textura e armazenando seu id
-	int imgWidth, imgHeight;
-	GLuint texID = loadTexture("../assets/tex/pixelWall.png",imgWidth,imgHeight);
+	Mesh mesh;
+	mesh.VAO = setupQuad();
+	mesh.drawMode = GL_TRIANGLE_STRIP;
+	mesh.pos = vec3(0.0,0.0,0.0);
+	mesh.angle = 0.0;
+	mesh.dimensions = vec3(1.0, 1.0, 1.0);
+	mesh.nVertices = 4;
 
-	float ka = 0.1, kd =0.5;
-	vec3 lightPos = vec3(0.6, 1.2, -0.5);
+	pontosControle.push_back(vec3(-0.5, -0.5, 0.01));
+	pontosControle.push_back(vec3(-0.25, -0.15, 0.01));
+	pontosControle.push_back(vec3(0.0, 0.0, 0.01));
+	pontosControle.push_back(vec3(0.25, 0.15, 0.01));
+	pontosControle.push_back(vec3(0.25, 0.3, 0.01));
+	pontosControle.push_back(vec3(0.15, 0.3, 0.01));
+	pontosControle.push_back(vec3(-0.25, 0.25, 0.01));
 
+	Mesh pontosControleMesh;
+	pontosControleMesh.VAO = createPointsVAO(pontosControle);
+	pontosControleMesh.drawMode = GL_POINTS;
+	pontosControleMesh.pos = vec3(0.0,0.0,0.0);
+	pontosControleMesh.angle = 0.0;
+	pontosControleMesh.dimensions = vec3(1.0, 1.0, 1.0);
+	pontosControleMesh.nVertices = pontosControle.size();
+
+	Curve curva;
+	curva.controlPoints = pontosControle;
+	initializeBernsteinMatrix(curva.M);
+	generateBezierCurvePoints(curva, 10);
+
+	Mesh pontosCurvaMesh;
+	pontosCurvaMesh.VAO = createPointsVAO(curva.curvePoints);
+	pontosCurvaMesh.drawMode = GL_POINTS;
+	pontosCurvaMesh.pos = vec3(0.0,0.0,0.0);
+	pontosCurvaMesh.angle = 0.0;
+	pontosCurvaMesh.dimensions = vec3(1.0, 1.0, 1.0);
+	pontosCurvaMesh.nVertices = curva.curvePoints.size();
+
+	vector<vec3> pontoExemplo;
+	pontoExemplo.push_back(vec3(0.0, 0.0, 0.01));
+	Mesh ponto;
+	ponto.VAO = createPointsVAO(pontoExemplo);
+	ponto.drawMode = GL_POINTS;
+	ponto.pos = vec3(0.0,0.0,0.0);
+	ponto.angle = 0.0;
+	ponto.dimensions = vec3(1.0, 1.0, 1.0);
+	ponto.nVertices = pontoExemplo.size();
 
 	glUseProgram(shaderID);
 
-	// Enviar a informação de qual variável armazenará o buffer da textura
-	glUniform1i(glGetUniformLocation(shaderID, "texBuff"), 0);
+	GLint colorLoc = glGetUniformLocation(shaderID, "inputColor");
 
-	glUniform1f(glGetUniformLocation(shaderID, "ka"), ka);
-	glUniform1f(glGetUniformLocation(shaderID, "kd"), kd);
-	glUniform3f(glGetUniformLocation(shaderID, "lightPos"), lightPos.x,lightPos.y,lightPos.z);
-
-	//Ativando o primeiro buffer de textura da OpenGL
-	glActiveTexture(GL_TEXTURE0);
-	
-
-	// Matriz de projeção paralela ortográfica
-	// mat4 projection = ortho(-10.0, 10.0, -10.0, 10.0, -1.0, 1.0);
-	mat4 projection = ortho(-1.0, 1.0, -1.0, 1.0, -3.0, 3.0);
+	mat4 projection = ortho(-1.0, 1.0, -1.0, 1.0, -5.0, 5.0);
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, GL_FALSE, value_ptr(projection));
-
-	// Matriz de modelo: transformações na geometria (objeto)
-	mat4 model = mat4(1); // matriz identidade
-	glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
-
+	
+	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
 		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as funções de callback correspondentes
 		glfwPollEvents();
 
+		//glLineWidth(10);
+		glPointSize(20);
+
 		// Limpa o buffer de cor
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // cor de fundo
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.0f, 0.0f, 0.0f,1.0f); // cor de fundo
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindVertexArray(VAO); // Conectando ao buffer de geometria
-		glBindTexture(GL_TEXTURE_2D, texID); //conectando com o buffer de textura que será usado no draw
+		glUniform4f(colorLoc, 0.0f, 0.0f, 1.0, 1.0f);
+		drawMesh(shaderID, mesh);
 
-		// Primeiro Triângulo
-		drawGeometry(shaderID, VAO, vec3(0, 0, 0), vec3(1, 1, 1), 0.0, nVertices);
+		glUniform4f(colorLoc, 1.0f, 1.0f, 0.0, 1.0f);
+		drawMesh(shaderID, pontosControleMesh);
 
+		glPointSize(10);
+		glUniform4f(colorLoc, 1.0f, 0.0f, 1.0, 0.0f);
+		drawMesh(shaderID, pontosCurvaMesh);
+
+		glPointSize(25);
+		glUniform4f(colorLoc, 0.0f, 1.0f, 0.0, 0.0f);
+
+		ponto.pos = curva.curvePoints[i];
+
+		curr_time = glfwGetTime();
+		delta_time = curr_time - prev_time;
+		if (delta_time > 1.0/FPS)
+		{
+			i = (i + 1) % curva.curvePoints.size();
+			prev_time = curr_time;
+			//implementar direção
+			//vec3 nextPos = curva.curvePoints[index];
+			//vec3 dir = normalize(nextPos - position);
+			//angle = atan2(dir.y, dir.x);
+		}
+		drawMesh(shaderID, ponto);
 	
-		glBindVertexArray(0); // Desconectando o buffer de geometria
-
 		// Troca os buffers da tela
 		glfwSwapBuffers(window);
 	}
 	// Pede pra OpenGL desalocar os buffers
-	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &mesh.VAO);
+	glDeleteVertexArrays(1, &pontosControleMesh.VAO);
+	glDeleteVertexArrays(1, &pontosCurvaMesh.VAO);
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
@@ -474,4 +519,103 @@ glEnableVertexAttribArray(3);
     nVertices = vBuffer.size() / 11; // Cada vértice agora tem 11 floats!
 
     return VAO;
+}
+
+int setupQuad()
+{
+	GLfloat vertices[] = {
+		// -0.5, 0.0, 0.5,
+		// -0.5, 0.0, -0.5,
+		// 0.5, 0.0, 0.5,
+		// 0.5, 0.0, -0.5
+
+		-0.5, 0.5, 0.0,
+		-0.5, -0.5, 0.0,
+		0.5, 0.5, 0.0,
+		0.5, -0.5, 0.0
+	};
+
+	GLuint VBO,VAO;
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	return VAO;
+}
+
+int createPointsVAO(vector<vec3> points)
+{
+	GLuint VBO, VAO;
+	// Geração do identificador do VBO
+	glGenBuffers(1, &VBO);
+	// Faz a conexão (vincula) do buffer como um buffer de array
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Envia os dados do array de floats para o buffer da OpenGl
+	glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(vec3), points.data(), GL_STATIC_DRAW);
+
+	// Geração do identificador do VAO (Vertex Array Object)
+	glGenVertexArrays(1, &VAO);
+	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
+	// e os ponteiros para os atributos
+	glBindVertexArray(VAO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
+	glBindVertexArray(0);
+
+	return VAO;
+}
+
+void initializeBernsteinMatrix(glm::mat4 &matrix)
+{
+    matrix[0] = glm::vec4(-1.0f, 3.0f, -3.0f, 1.0f); // Primeira coluna
+    matrix[1] = glm::vec4(3.0f, -6.0f, 3.0f, 0.0f);  // Segunda coluna
+    matrix[2] = glm::vec4(-3.0f, 3.0f, 0.0f, 0.0f);  // Terceira coluna
+    matrix[3] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);    // Quarta coluna
+
+}
+
+
+void generateBezierCurvePoints(Curve &curve, int numPoints) 
+{
+    curve.curvePoints.clear(); // Limpa quaisquer pontos antigos da curva
+
+    initializeBernsteinMatrix(curve.M);
+    // Calcular os pontos ao longo da curva com base em Bernstein
+     // Loop sobre os pontos de controle em grupos de 4
+
+    float piece = 1.0/ (float) numPoints;
+    float t;
+    for (int i = 0; i < curve.controlPoints.size() - 3; i+=3) {
+        
+        // Gera pontos para o segmento atual
+        for (int j = 0; j < numPoints;j++) {
+            t = j * piece;
+            
+            // Vetor t para o polinômio de Bernstein
+            glm::vec4 T(t * t * t, t * t, t, 1);
+            
+            glm::vec3 P0 = curve.controlPoints[i];
+			glm::vec3 P1 = curve.controlPoints[i + 1];
+			glm::vec3 P2 = curve.controlPoints[i + 2];
+			glm::vec3 P3 = curve.controlPoints[i + 3];
+
+			glm::mat4x3 G(P0, P1, P2, P3);
+
+            // Calcula o ponto da curva multiplicando tVector, a matriz de Bernstein e os pontos de controle
+            glm::vec3 point = G * curve.M * T;
+            
+            curve.curvePoints.push_back(point);
+        }
+    }
 }

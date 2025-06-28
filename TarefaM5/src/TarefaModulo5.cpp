@@ -21,24 +21,29 @@ using namespace std;
 // GLFW
 #include <GLFW/glfw3.h>
 
-//GLM
+// GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//Custom Classes
+// Custom Classes
 #include "Engine/Control.hpp"
 #include "Engine/Character.hpp"
+#include "Engine/Camera.hpp"
 
-//Global Types
-struct Mesh 
+// Global Types
+struct Mesh
 {
-    GLuint VAO; 
-
+	GLuint VAO;
 };
 
-// Protótipo da função de callback de teclado
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+// Protótipo da função de callback de teclado para controle do objeto
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+// Função de callback do teclado para controle da camera
+void key_callback_camera(GLFWwindow *window, int key, int scancode, int action, int mode);
+// Função de callback do mouse
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // Protótipos das funções
 int setupShader();
@@ -49,7 +54,7 @@ GLuint loadTexture(string filePath, int &width, int &height);
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
 // Código fonte do Vertex Shader (em GLSL): ainda hardcoded
-const GLchar* vertexShaderSource = R"(
+const GLchar *vertexShaderSource = R"(
 	#version 450 core
 	layout (location = 0) in vec3 position;
 	layout (location = 1) in vec3 color;
@@ -74,9 +79,8 @@ const GLchar* vertexShaderSource = R"(
 		scaledNormal = vec3(model * vec4(normal, 1.0));
 	})";
 
-
-//Códifo fonte do Fragment Shader (em GLSL): ainda hardcoded
-const GLchar* fragmentShaderSource = R"(
+// Códifo fonte do Fragment Shader (em GLSL): ainda hardcoded
+const GLchar *fragmentShaderSource = R"(
 	#version 450 core
 	in vec3 vertexColor;
 	in vec2 texCoord;
@@ -129,7 +133,12 @@ const GLchar* fragmentShaderSource = R"(
 		Color = vec4(result, 1.0f);
 	})";
 
-vector<Character*> character(1);
+vector<Character *> character(1);
+Camera cameraControl(
+	glm::vec3(0.0f, 0.0f, 3.0f),
+	glm::vec3(0.0f, 0.0f, -1.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f),
+	0.2f);
 int currentObject = 0;
 
 // Função MAIN
@@ -139,22 +148,26 @@ int main()
 	glfwInit();
 
 	// Criação da janela GLFW
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M4 -- Vitor Henrique Spader!", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M4 -- Vitor Henrique Spader!", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Fazendo o registro da função de callback para a janela GLFW
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window, key_callback_camera);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// GLAD: carrega todos os ponteiros d funções da OpenGL
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		cout << "Failed to initialize GLAD" << endl;
-
 	}
 
 	// Obtendo as informações de versão
-	const GLubyte* renderer = glGetString(GL_RENDERER); /* get renderer string */
-	const GLubyte* version = glGetString(GL_VERSION); /* version as a string */
+	const GLubyte *renderer = glGetString(GL_RENDERER); /* get renderer string */
+	const GLubyte *version = glGetString(GL_VERSION);	/* version as a string */
 	cout << "Renderer: " << renderer << endl;
 	cout << "OpenGL version supported " << version << endl;
 
@@ -165,14 +178,23 @@ int main()
 
 	// Compilando e buildando o programa de shader
 	GLuint shaderID = setupShader();
-	
-	//Instancia os objetos dos personagens
-	for (int x=0; x < character.size(); x++)
+
+	GLuint modelLoc;
+
+	glUseProgram(shaderID);
+
+	cameraControl.setShaderID(shaderID);
+	cameraControl.setWindowSize(WIDTH, HEIGHT);
+	cameraControl.updateUniformProperties();
+
+	// Instancia os objetos dos personagens
+	for (int x = 0; x < character.size(); x++)
 	{
-		Control* controler = new Control(0.0f, 0.0f, 0.0f , 0.1f);
+		Control *controler = new Control(0.0f, 0.0f, 0.0f, 0.1f);
 		controler->setScale(-3);
 		character[x] = new Character(controler, "../assets/Modelos3D/Suzanne.obj", true);
 		character[x]->initializeUniformProperties(shaderID);
+		character[x]->setModelLoc(modelLoc);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -184,20 +206,21 @@ int main()
 		glfwPollEvents();
 
 		// Limpa o buffer de cor
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); //cor de fundo
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for (int x=0; x < character.size(); x++)
+		cameraControl.updateUniformProperties();
+
+		for (int x = 0; x < character.size(); x++)
 		{
 			character[x]->draw(shaderID, true);
-
 		}
 
 		// Troca os buffers da tela
 		glfwSwapBuffers(window);
 	}
 
-	for (Character* object: character)
+	for (Character *object : character)
 	{
 		delete object;
 	}
@@ -207,10 +230,20 @@ int main()
 	return 0;
 }
 
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+	cameraControl.calculateCameraPositionByMouse(xpos, ypos);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	cameraControl.calculateFov(yoffset);
+}
+
 // Função de callback de teclado - só pode ter uma instância (deve ser estática se
 // estiver dentro de uma classe) - É chamada sempre que uma tecla for pressionada
 // ou solta via GLFW
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void key_callback_camera(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
 	if (action == GLFW_PRESS)
 	{
@@ -219,16 +252,50 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		case GLFW_KEY_ESCAPE:
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
-		
+
+		case GLFW_KEY_A:
+			cameraControl.moveLeft();
+			break;
+
+		case GLFW_KEY_D:
+			cameraControl.moveRight();
+			break;
+
+		case GLFW_KEY_W:
+			cameraControl.moveUp();
+			break;
+
+		case GLFW_KEY_S:
+			cameraControl.moveDown();
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+// Função de callback de teclado - só pode ter uma instância (deve ser estática se
+// estiver dentro de uma classe) - É chamada sempre que uma tecla for pressionada
+// ou solta via GLFW
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+{
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_ESCAPE:
+			glfwSetWindowShouldClose(window, GL_TRUE);
+			break;
+
 		case GLFW_KEY_0:
 			currentObject = 0;
 			break;
-		
+
 		case GLFW_KEY_1:
 			if (character.size() > 1)
 				currentObject = 1;
 			break;
-		
+
 		case GLFW_KEY_X:
 			character[currentObject]->control->setRotateX(1);
 			break;
@@ -248,7 +315,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		case GLFW_KEY_LEFT_BRACKET:
 			character[currentObject]->control->setScale(-1);
 			break;
-		
+
 		case GLFW_KEY_A:
 			character[currentObject]->control->setTranslateX(-1);
 			break;
@@ -279,11 +346,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-//Esta função está basntante hardcoded - objetivo é compilar e "buildar" um programa de
-// shader simples e único neste exemplo de código
-// O código fonte do vertex e fragment shader está nos arrays vertexShaderSource e
-// fragmentShader source no iniçio deste arquivo
-// A função retorna o identificador do programa de shader
+// Esta função está basntante hardcoded - objetivo é compilar e "buildar" um programa de
+//  shader simples e único neste exemplo de código
+//  O código fonte do vertex e fragment shader está nos arrays vertexShaderSource e
+//  fragmentShader source no iniçio deste arquivo
+//  A função retorna o identificador do programa de shader
 int setupShader()
 {
 	// Vertex shader
@@ -297,7 +364,8 @@ int setupShader()
 	if (!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
+		cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+			 << infoLog << endl;
 	}
 	// Fragment shader
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -308,7 +376,8 @@ int setupShader()
 	if (!success)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
+		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+			 << infoLog << endl;
 	}
 	// Linkando os shaders e criando o identificador do programa de shader
 	GLuint shaderProgram = glCreateProgram();
@@ -317,9 +386,11 @@ int setupShader()
 	glLinkProgram(shaderProgram);
 	// Checando por erros de linkagem
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
+	if (!success)
+	{
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
+		cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
+			 << infoLog << endl;
 	}
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
