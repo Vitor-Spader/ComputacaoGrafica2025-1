@@ -1,6 +1,6 @@
 {
   "light": {
-    "ka": 0.2,
+    "ka": 0.8,
     "kd": 0.5,
     "ks": 0.5,
     "q": 20.0,
@@ -18,16 +18,16 @@
   },
   "object": [
     {
-      "objFilePath": "../assets/Modelos3D/Suzanne.obj",
+      "objFilePath": "../assets/Modelos3D/Earth 2K.obj",
       "hasTexture": true,
       "initial": {
         "position": [0.0, 0.0, 0.0],
         "moveFactor": 0.1,
-        "scale": -5.0
+        "scale": -8.5
       }
     },
     {
-      "objFilePath": "../assets/Modelos3D/Suzanne.obj",
+      "objFilePath": "../assets/Modelos3D/Moon 2K.obj",
       "hasTexture": true,
       "initial": {
         "position": [0.5, 0.0, 0.0],
@@ -36,7 +36,7 @@
       }
     }
   ],
-  "objectMoveMent":[
+  "objectMovement":[
     [-0.5, -0.5, 0.0],
     [-0.25, -0.25, 0.25],
     [0.0, 0.0, 0.5],

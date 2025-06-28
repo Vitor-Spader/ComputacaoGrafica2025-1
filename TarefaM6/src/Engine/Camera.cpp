@@ -123,11 +123,11 @@ void Camera::calculateCameraPositionByMouse(double xpos, double ypos)
 	front.x = cos(glm::radians(mouseControl.yaw)) * cos(glm::radians(mouseControl.pitch));
 	front.y = sin(glm::radians(mouseControl.pitch));
 	front.z = sin(glm::radians(mouseControl.yaw)) * cos(glm::radians(mouseControl.pitch));
-	front = glm::normalize(front);
+    front = glm::normalize(front);
 
 	// Precisamos também atualizar o cameraUp!! Pra isso, usamos o Up do
 	// mundo (y), recalculamos Right e depois o Up
-	glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0.0, 1.0, 0.0)));
+	glm::vec3 right = glm::normalize(glm::cross(front, up));
 	up = glm::normalize(glm::cross(right, front));
 }
 

@@ -295,7 +295,7 @@ int main()
 			glm::vec3 nextPos = curva->getPoints()[i];
 			glm::vec3 dir = glm::normalize(nextPos - position);
 			// Novo ângulo
-			float targetAngle = atan2(dir.y, dir.z);
+			float targetAngle = atan2(dir.x, dir.z);
 
 			// Corrige interpolação circular: evita salto de 360° → 0°
 			float deltaAngle = targetAngle - currentAngle;
@@ -307,6 +307,7 @@ int main()
 			// Interpolação suave do ângulo
 			currentAngle += deltaAngle * 0.1f;
 			
+			currentAngle = targetAngle;
 			// Atualiza o personagem
 			character[1]->control->setAngle(currentAngle);
 
