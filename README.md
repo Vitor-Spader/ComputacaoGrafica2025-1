@@ -36,9 +36,7 @@ Este projeto implementa um sistema básico de renderização 3D usando OpenGL, G
 ├── include/          # Arquivos de cabeçalho
 ├── assets/           # Modelos 3D e texturas
 ├── config/           # Arquivo JSON de configuração
-├── shaders/          # Vertex e fragment shaders
-├── CMakeLists.txt    # Build do projeto
-└── README.md
+└── CMakeLists.txt    # Build do projeto
 ```
 
 ---
@@ -69,7 +67,7 @@ Isso irá gerar o executável na pasta `build`.
 1. Certifique-se de que o arquivo `config/config.json` existe e está corretamente configurado.
 2. Execute o programa:
    ```bash
-   ./MyApp
+   ./TarefaModulo6
    ```
 
 ---
