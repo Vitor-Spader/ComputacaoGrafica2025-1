@@ -166,7 +166,7 @@ int main()
 	glfwInit();
 	
 	// Criação da janela GLFW
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M4 -- Vitor Henrique Spader!", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Tarefa M6 -- Vitor Henrique Spader!", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 	
 	// Fazendo o registro da função de callback para a janela GLFW
